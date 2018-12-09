@@ -1,24 +1,25 @@
 ### How to deploy a NodeJS server on Zeits Now platform ▲
 
-*I decided to write this article because when I was working on this goal, I
+*I’ve decided to write this article because when I was working on this goal, I
 couldn’t find that many resources, besides the *[docs of Zeit
-Now](https://zeit.co/docs/api)* themselves. This how-to applies to V2 of the
-API!*
+Now](https://zeit.co/docs/api)* themselves.*
 
-The goal is to deploy a NodeJS server application, for instance an Express
+The goal is to deploy a NodeJS **server** application, for instance an Express
 server, to [Zeits Now](https://zeit.co/now) platform and publish it to an [AWS
 Route53](https://aws.amazon.com/route53/) subdomain. I’ll go with an Express
 repo, since I think that’s a viable use case.
 
-### Setting up an Express repo
+### Setting up an Express project
 
 If you want to know a bit more about setting up an Express application, I
 recommend [this guide by the Mozilla
 Foundation](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs).
-In our example, where simply going to build a weather API, which pull from a
-DarkSky API.
+In our example, where simply going to build a very simple weather API, which
+pulls from a DarkSky API.
 
-Initialize a repo with:
+#### Let’s get started!
+
+Initialize a project with:
 
     $ npm init
 
@@ -38,15 +39,15 @@ the *package.json* file (add it to the “scripts” property):
 
     // ...omitted more stuff for the sake of brevity
 
-This way, you can run your NodeJS script with the command:
+This way, you can run your Node script with the command:
 
     $ npm run start
 
-There’s nothing to start though, so let’s create the application. First, sign up
+There’s nothing to start though, so let’s create an application. First, sign up
 for an API key at [https://darksky.net/dev](https://darksky.net/dev). Obviously,
 you’ll be needing that key!
 
-Next, save the contents of the following file as “index.js”:
+Next, save the contents of the following file as *index.js*:
 
     const express = require("express");
 
@@ -56,7 +57,7 @@ Next, save the contents of the following file as “index.js”:
     async function getWeather() {
       const config = {
         secret: "INSERT_YOUR_SECRET_HERE",
-        location: "52.238,5.5346",
+        location: "52.238,5.5346", // This is NL, welcome!
         lang: "en",
         units: "si",
         exclude: "minutely,hourly,daily,alerts,flags"
@@ -86,6 +87,8 @@ The application will run on the following URL:
 [http://localhost:4000](http://localhost:4000/). Enjoy our typical Dutch
 weather! ☔️
 
+*****
+
 ### First deploy
 
 Now, to deploy this API to the world! Install the Now CLI globally via npm:
@@ -106,8 +109,8 @@ create the following *now.json* file in your projects’ folder:
     }
 
 This file is being read on deployment and tells Now which version of their API
-you’ll want to use (only version 2 supports node servers), what files to look
-for on build, and what type of hosting environment to use.
+you’ll want to use (**only version 2 supports node servers**), what files to
+look for on build, and what type of hosting environment to use.
 
 Also, add a *.nowignore* file with the following entry to exclude the
 node_modules folder:
@@ -126,29 +129,31 @@ subdomain of the now.sh servers! 🚀
 Feel free to visit the successful deployment of your API. Getting an error? Read
 on! 👇
 
-### Dealing with errors
+#### Dealing with errors
 
-I’ve received an error, and am not sure what went wrong. This seems like a good
-opportunity to take a look at some logs, to try and resolve it:
+I’ve received an error, and I am not sure what went wrong. This seems like a
+good opportunity to take a look at some logs, to try and resolve it:
 
     $ now logs URL_OF_FAILED_DEPLOYMENT_HERE
 
 This way, you can take a look at the build that was executed by your command.
 
+*****
+
 ### Dealing with environment variables and secrets
 
-To distinguish between your local development and online environments, you can
-use environmental variables. We are going to use these to toggle some features
-in the application. We are also going to obfuscate the API secret from DarkSky.
-(*Strictly, this isn’t required, since the API key is not directly exposed to
-the public. But would you add this code to a versioning system, it is good
-practice to exclude all sorts of keys and secrets from your application, to
-prevent misuse.*)
+To alternate settings between your development and online production
+environments, you can use environmental variables. We are going to use these to
+toggle some features in the application. We are also going to obfuscate the API
+secret from DarkSky. (*Strictly, this isn’t required, since the API key is not
+directly exposed to the public. But would you add this code to a versioning
+system, it is good practice to exclude all sorts of keys and secrets from your
+application, to prevent misuse.*)
 
 #### Environment variables
 
 Now provides a variable (*process.env.now*) on deployment, which we can use to
-toggle some features. Install the dotenv package for development use with:
+toggle some features. Install the dotenv package with:
 
     $ npm install dotenv --save-dev
 
@@ -168,12 +173,12 @@ Try a new deploy with those code changes:
 
 You should be able to visit your API now on the deployed URL on now.sh! 🙌
 
-#### Secrets
+#### Secrets 🤫
 
 How about them secrets huh? In our example application, we have one variable you
 can consider a secret: the DarkSky API key. To work locally with secrets, you
 usually create a *.env* file in your folder which you **exclude from version
-control**:
+control**. Store this line in your .env file:
 
     darksky_secret=some_random_secret9f3c9a26798255
 
@@ -187,15 +192,15 @@ Change the *config* part to change the secret reference to match this:
       exclude: "minutely,hourly,daily,alerts,flags"
     };
 
-Test your local server, this should still work as expected. This file does not
-get published to Now, so you’ll need [a different means of providing these
+Test your local server, this should still work as expected. This file does **not
+get published to Now**, so you’ll need [a different means of providing these
 variables](https://zeit.co/docs/v1/getting-started/environment-variables/).
 
 *Note: The docs state different means of making the variable available during
 build, but I found only the following combination worked for me.*
 
 Push the secret to Now with the following command (secrets are shared on the
-account level):
+account level. Make sure they’re good names!):
 
     $ now secrets add darksky_secret "some_random_secret9f3c9a26798255"
 
@@ -219,7 +224,7 @@ Open up the *now.json* file and append the “*build*” property with the requi
       }
     }
 
-That should be it, but I haven’t been able to get it working just yet. I added
+That *should* be it, but I haven’t been able to get it working just yet. I added
 the following step to make it work: When deploying, reference the secrets via
 the command:
 
@@ -227,8 +232,8 @@ the command:
     darksky_secret
 
 I think the command has a similar means as the config in the *now.json* file,
-but this seems to work. So, oh well… This is some lengthy typing, so I added a
-“deploy” script to my *package.json*:
+but this combination seems to work. So, oh well… This is some lengthy typing, so
+I added a “deploy” script to my *package.json*:
 
     // omitted stuff for the sake of brevity... 
     "scripts": {
@@ -237,6 +242,8 @@ but this seems to work. So, oh well… This is some lengthy typing, so I added a
     "
     },
     // ...omitted more stuff for the sake of brevity
+
+*****
 
 ### Aliasing deploys
 
@@ -283,3 +290,7 @@ fastest way to reinitialize is to simply rerun the last command from the CLI:
     now alias YOUR_LAST_DEPLOYMENT_URL weather.my-example.com
 
 Now you should receive a success message, congrats! 🎉
+
+*****
+
+If you have any questions or remarks, feel free to contact me!
