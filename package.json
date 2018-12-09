@@ -1,0 +1,21 @@
+{
+  "name": "now-deploy-example",
+  "version": "1.0.0",
+  "description": "Example repository",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon node index.js",
+    "deploy": "now -e darksky_secret=@darksky_secret",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Joran Quinten",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4",
+    "node-fetch": "^2.3.0"
+  },
+  "devDependencies": {
+    "dotenv": "^6.2.0",
+    "nodemon": "^1.18.7"
+  }
+}
